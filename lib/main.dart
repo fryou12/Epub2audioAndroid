@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'widgets/app_drawer.dart';
+import 'widgets/dotted_container.dart';
+import 'constants/colors.dart';
 import 'services/tts_service.dart';
-import 'widgets/settings_page.dart';
-import 'widgets/tts_drawer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,287 +38,264 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final TTSService _ttsService = TTSService();
-  bool _showSettings = false;
   String? _selectedFilePath;
-  bool _isProcessing = false;
-  bool _isAnalyzing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeTTS();
-  }
-
-  Future<void> _initializeTTS() async {
-    await _ttsService.initialize();
-  }
-
-  void _handleVoiceSelected(String voice) {
-    _ttsService.setVoice(voice);
-    Navigator.pop(context);
-  }
-
-  void _handleSettingsPressed() {
-    setState(() {
-      _showSettings = true;
-    });
-    Navigator.pop(context);
-  }
+  String? _selectedDirectoryPath;
+  bool _showSettings = false;
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['epub'],
-    );
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['epub'],
+      );
 
-    if (result != null) {
-      setState(() {
-        _selectedFilePath = result.files.single.path;
-        _isAnalyzing = false;
-        _isProcessing = false;
-      });
+      if (result != null) {
+        setState(() {
+          _selectedFilePath = result.files.single.path;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la sélection du fichier: $e');
     }
   }
 
-  Future<void> _analyzeBook() async {
-    if (_selectedFilePath == null) return;
-
-    setState(() {
-      _isAnalyzing = true;
-    });
-
+  Future<void> _pickDirectory() async {
     try {
-      // Logique d'analyse du livre
-      await Future.delayed(const Duration(seconds: 2)); // Simulation
-    } finally {
-      setState(() {
-        _isAnalyzing = false;
-      });
+      String? result = await FilePicker.platform.getDirectoryPath();
+
+      if (result != null) {
+        setState(() {
+          _selectedDirectoryPath = result;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la sélection du dossier: $e');
     }
   }
 
-  Future<void> _processBook() async {
-    if (_selectedFilePath == null) return;
+  String _getFileName() {
+    if (_selectedFilePath == null) return '';
+    return _selectedFilePath!.split('/').last;
+  }
 
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      // Logique de traitement du livre
-      await Future.delayed(const Duration(seconds: 2)); // Simulation
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
-    }
+  String _getDirectoryName() {
+    if (_selectedDirectoryPath == null) return '';
+    return _selectedDirectoryPath!.split('/').last;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.book, color: Colors.white),
-            const SizedBox(width: 10),
-            Text(
-              _showSettings ? 'Paramètres' : 'EPUB to Audio',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          if (!_showSettings)
-            IconButton(
-              icon: const Icon(Icons.settings, color: Colors.white),
-              onPressed: () {
-                setState(() {
-                  _showSettings = true;
-                });
-              },
-            ),
-        ],
-      ),
-      drawer: TTSDrawer(
-        onVoiceSelected: _handleVoiceSelected,
-        onSettingsPressed: _handleSettingsPressed,
-      ),
-      body: _showSettings
-          ? const SettingsPage()
-          : Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    Colors.white,
-                  ],
-                ),
+      backgroundColor: AppColors.drawerBackground,
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.headerBackground,
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.white,
+                width: 1,
               ),
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            leading: Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            ),
+            title: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.menu_book_outlined, color: Colors.white, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'ePub vers Audio',
+                  style: TextStyle(color: Colors.white),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.volume_up, color: Colors.white, size: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+      drawer: const AppDrawer(),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 8.0,
+              right: 8.0,
+              bottom: 8.0,
+            ),
+            child: Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width - 16,
+                child: const DottedContainer(),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                kToolbarHeight + MediaQuery.of(context).padding.top + 16,
+                16,
+                16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.file_present_outlined, color: Colors.white),
+                            label: const Text(
+                              'Fichier',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: _pickFile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[800],
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (_selectedFilePath != null)
+                            Expanded(
+                              child: Text(
+                                _getFileName(),
+                                style: const TextStyle(color: Colors.white),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.folder_outlined, color: Colors.white),
+                            label: const Text(
+                              'Dossier',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: _pickDirectory,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[800],
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (_selectedDirectoryPath != null)
+                            Expanded(
+                              child: Text(
+                                _getDirectoryName(),
+                                style: const TextStyle(color: Colors.white),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                            width: 2,
-                            style: BorderStyle.solid,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            children: [
-                              if (_selectedFilePath == null) ...[
-                                const Icon(
-                                  Icons.upload_file,
-                                  size: 64,
-                                  color: Colors.blue,
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.analytics_outlined, color: Colors.white),
+                              label: const Text(
+                                'Analyser',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: _selectedFilePath != null ? () {} : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Sélectionnez un fichier EPUB pour commencer',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                minimumSize: const Size(100, 40),
+                                elevation: 0,
+                              ).copyWith(
+                                backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.disabled)) {
+                                      return Colors.grey[800]?.withOpacity(0.75);
+                                    }
+                                    return Colors.grey[800];
+                                  },
                                 ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: _pickFile,
-                                  icon: const Icon(Icons.file_upload),
-                                  label: const Text(
-                                    'Choisir un fichier',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.audiotrack_outlined, color: Colors.white),
+                              label: const Text(
+                                'Convertir',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: _selectedDirectoryPath != null ? () {} : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              ] else ...[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.description,
-                                      size: 24,
-                                      color: Colors.blue,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: Text(
-                                        'Fichier : ${_selectedFilePath!.split('/').last}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                minimumSize: const Size(100, 40),
+                                elevation: 0,
+                              ).copyWith(
+                                backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.disabled)) {
+                                      return Colors.grey[800]?.withOpacity(0.75);
+                                    }
+                                    return Colors.grey[800];
+                                  },
                                 ),
-                                const SizedBox(height: 24),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    ElevatedButton.icon(
-                                      onPressed: _pickFile,
-                                      icon: const Icon(Icons.file_upload),
-                                      label: const Text('Changer'),
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 12,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                      ),
-                                    ),
-                                    ElevatedButton.icon(
-                                      onPressed: _isAnalyzing ? null : _analyzeBook,
-                                      icon: _isAnalyzing
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(Icons.analytics),
-                                      label: Text(_isAnalyzing ? 'Analyse...' : 'Analyser'),
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 12,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                      ),
-                                    ),
-                                    ElevatedButton.icon(
-                                      onPressed: _isProcessing ? null : _processBook,
-                                      icon: _isProcessing
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(Icons.play_arrow),
-                                      label: Text(_isProcessing ? 'Conversion...' : 'Convertir'),
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 12,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
+          ),
+        ],
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    _ttsService.dispose();
-    super.dispose();
   }
 }

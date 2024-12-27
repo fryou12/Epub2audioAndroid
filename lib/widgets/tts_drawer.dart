@@ -1,345 +1,242 @@
 import 'package:flutter/material.dart';
-import '../services/edge_tts_service.dart';
+import '../services/tts_service.dart';
 
 class TTSDrawer extends StatefulWidget {
   final Function(String) onVoiceSelected;
-  final Function() onSettingsPressed;
+  final VoidCallback onSettingsPressed;
 
   const TTSDrawer({
-    Key? key,
+    super.key,
     required this.onVoiceSelected,
     required this.onSettingsPressed,
-  }) : super(key: key);
+  });
 
   @override
   State<TTSDrawer> createState() => _TTSDrawerState();
 }
 
 class _TTSDrawerState extends State<TTSDrawer> {
-  final EdgeTTSService _ttsService = EdgeTTSService();
-  String? selectedEngine = 'Edge TTS';
-  String? selectedLanguage;
-  String? selectedVoice;
-  Map<String, List<VoiceInfo>> voicesByLanguage = {};
-  bool isLoading = true;
+  final TTSService _ttsService = TTSService();
+  String? _selectedEngine;
+  String? _selectedLanguage;
+  String? _selectedVoice;
+  List<String> _engines = [];
+  List<String> _languages = [];
+  List<String> _voices = [];
 
   @override
   void initState() {
     super.initState();
-    _loadVoices();
+    _initializeTTS();
   }
 
-  Future<void> _loadVoices() async {
+  Future<void> _initializeTTS() async {
+    await _ttsService.initialize();
+    _updateEngines();
+  }
+
+  void _updateEngines() {
     setState(() {
-      isLoading = true;
-    });
-
-    try {
-      final voices = await _ttsService.getVoices();
-      final Map<String, List<VoiceInfo>> tempVoices = {};
-
-      for (var voice in voices) {
-        if (!tempVoices.containsKey(voice.locale)) {
-          tempVoices[voice.locale] = [];
-        }
-        tempVoices[voice.locale]!.add(voice);
+      _engines = _ttsService.getAvailableEngines();
+      _selectedEngine = _engines.isNotEmpty ? _engines.first : null;
+      if (_selectedEngine != null) {
+        _updateLanguages();
       }
+    });
+  }
 
-      setState(() {
-        voicesByLanguage = tempVoices;
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Erreur lors du chargement des voix: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
+  void _updateLanguages() {
+    setState(() {
+      _languages = _ttsService.getAvailableLanguages(_selectedEngine!);
+      _selectedLanguage = _languages.isNotEmpty ? _languages.first : null;
+      if (_selectedLanguage != null) {
+        _updateVoices();
+      }
+    });
+  }
+
+  void _updateVoices() {
+    setState(() {
+      _voices = _ttsService.getAvailableVoices(_selectedEngine!, _selectedLanguage!);
+      _selectedVoice = _voices.isNotEmpty ? _voices.first : null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Drawer(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor.withOpacity(0.8),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.record_voice_over,
-                      size: 48,
-                      color: Colors.white,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Paramètres TTS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
+      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+      child: Column(
+        children: [
+          Container(
+            height: kToolbarHeight + MediaQuery.of(context).padding.top,
+            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              border: Border(
+                bottom: BorderSide(
                   color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        side: BorderSide(
-                          color: Theme.of(context).primaryColor.withOpacity(0.2),
-                          width: 1,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.settings_voice),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'Moteur TTS',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            DropdownButtonFormField<String>(
-                              value: selectedEngine,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'Edge TTS',
-                                  child: Text('Edge TTS'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedEngine = value;
-                                  selectedLanguage = null;
-                                  selectedVoice = null;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (selectedEngine == 'Edge TTS') ...[
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          side: BorderSide(
-                            color: Theme.of(context).primaryColor.withOpacity(0.2),
-                            width: 1,
-                            style: BorderStyle.solid,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.language),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    'Langue',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              if (isLoading)
-                                const LinearProgressIndicator()
-                              else
-                                DropdownButtonFormField<String>(
-                                  value: selectedLanguage,
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                  hint: const Text('Sélectionner une langue'),
-                                  items: voicesByLanguage.keys.map((locale) {
-                                    return DropdownMenuItem(
-                                      value: locale,
-                                      child: Text(_getLanguageName(locale)),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedLanguage = value;
-                                      selectedVoice = null;
-                                    });
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (selectedLanguage != null) ...[
-                        const SizedBox(height: 16),
-                        Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: BorderSide(
-                              color: Theme.of(context).primaryColor.withOpacity(0.2),
-                              width: 1,
-                              style: BorderStyle.solid,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.record_voice_over),
-                                    const SizedBox(width: 10),
-                                    const Text(
-                                      'Voix',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                DropdownButtonFormField<String>(
-                                  value: selectedVoice,
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                  ),
-                                  hint: const Text('Sélectionner une voix'),
-                                  items: voicesByLanguage[selectedLanguage]!.map((voice) {
-                                    return DropdownMenuItem(
-                                      value: voice.shortName,
-                                      child: Text('${voice.name} (${voice.gender})'),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedVoice = value;
-                                    });
-                                    if (value != null) {
-                                      widget.onVoiceSelected(value);
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                    const SizedBox(height: 16),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        side: BorderSide(
-                          color: Theme.of(context).primaryColor.withOpacity(0.2),
-                          width: 1,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.settings),
-                        title: const Text('Paramètres'),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: widget.onSettingsPressed,
-                      ),
-                    ),
-                  ],
+                  width: 1,
                 ),
               ),
             ),
-          ],
-        ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Configuration TTS',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                const SizedBox(height: 16),
+                _buildDropdownSection(
+                  icon: Icons.engineering,
+                  title: 'Moteur TTS',
+                  value: _selectedEngine,
+                  items: _engines,
+                  onChanged: (String? value) {
+                    if (value != null && value != _selectedEngine) {
+                      setState(() {
+                        _selectedEngine = value;
+                        _selectedLanguage = null;
+                        _selectedVoice = null;
+                        _languages.clear();
+                        _voices.clear();
+                        _updateLanguages();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+                _buildDropdownSection(
+                  icon: Icons.language,
+                  title: 'Langue',
+                  value: _selectedLanguage,
+                  items: _languages,
+                  onChanged: (String? value) {
+                    if (value != null && value != _selectedLanguage) {
+                      setState(() {
+                        _selectedLanguage = value;
+                        _selectedVoice = null;
+                        _voices.clear();
+                        _updateVoices();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+                _buildDropdownSection(
+                  icon: Icons.record_voice_over,
+                  title: 'Voix',
+                  value: _selectedVoice,
+                  items: _voices,
+                  onChanged: (String? value) {
+                    if (value != null && value != _selectedVoice) {
+                      setState(() {
+                        _selectedVoice = value;
+                        widget.onVoiceSelected(value);
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton.icon(
+              onPressed: widget.onSettingsPressed,
+              icon: const Icon(Icons.settings),
+              label: const Text('Paramètres'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  String _getLanguageName(String locale) {
-    final Map<String, String> languageNames = {
-      'fr-FR': 'Français',
-      'en-US': 'Anglais (US)',
-      'en-GB': 'Anglais (UK)',
-      'de-DE': 'Allemand',
-      'es-ES': 'Espagnol',
-      'it-IT': 'Italien',
-    };
-    return languageNames[locale] ?? locale;
+  Widget _buildDropdownSection({
+    required IconData icon,
+    required String title,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+            ),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: value,
+            items: items.map((String item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(
+                  item,
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+            ),
+            dropdownColor: theme.colorScheme.primary,
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

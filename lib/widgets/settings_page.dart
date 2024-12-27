@@ -1,182 +1,247 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-class TTSSettings {
-  int maxParallelChapters;
-  double rate;
-  double volume;
-  double pitch;
-
-  TTSSettings({
-    this.maxParallelChapters = 3,
-    this.rate = 0,
-    this.volume = 0,
-    this.pitch = 0,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'maxParallelChapters': maxParallelChapters,
-    'rate': rate,
-    'volume': volume,
-    'pitch': pitch,
-  };
-
-  factory TTSSettings.fromJson(Map<String, dynamic> json) => TTSSettings(
-    maxParallelChapters: json['maxParallelChapters'] ?? 3,
-    rate: json['rate']?.toDouble() ?? 0,
-    volume: json['volume']?.toDouble() ?? 0,
-    pitch: json['pitch']?.toDouble() ?? 0,
-  );
-}
+import '../services/tts_service.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late TTSSettings settings;
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final TTSService _ttsService = TTSService();
+  double _speechRate = 1.0;
+  double _volume = 1.0;
+  double _pitch = 1.0;
+  int _maxParallelChapters = 3;
 
   @override
   void initState() {
     super.initState();
-    settings = TTSSettings();
     _loadSettings();
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await _prefs;
-    final settingsJson = prefs.getString('tts_settings');
-    if (settingsJson != null) {
-      setState(() {
-        settings = TTSSettings.fromJson(
-          Map<String, dynamic>.from(
-            Map.from(settingsJson as Map)
-          )
-        );
-      });
-    }
+    // Charger les paramètres depuis le service
   }
 
   Future<void> _saveSettings() async {
-    final prefs = await _prefs;
-    await prefs.setString('tts_settings', settings.toJson().toString());
+    // Sauvegarder les paramètres dans le service
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paramètres TTS'),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Traitement parallèle',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Nombre maximum de chapitres traités simultanément'),
-                      Slider(
-                        value: settings.maxParallelChapters.toDouble(),
-                        min: 1,
-                        max: 10,
-                        divisions: 9,
-                        label: settings.maxParallelChapters.toString(),
-                        onChanged: (value) {
-                          setState(() {
-                            settings.maxParallelChapters = value.round();
-                          });
-                          _saveSettings();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Paramètres de voix Edge TTS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Vitesse de parole'),
-                      Slider(
-                        value: settings.rate,
-                        min: -100,
-                        max: 100,
-                        divisions: 40,
-                        label: '${settings.rate.round()}%',
-                        onChanged: (value) {
-                          setState(() {
-                            settings.rate = value;
-                          });
-                          _saveSettings();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Volume'),
-                      Slider(
-                        value: settings.volume,
-                        min: -100,
-                        max: 100,
-                        divisions: 40,
-                        label: '${settings.volume.round()}%',
-                        onChanged: (value) {
-                          setState(() {
-                            settings.volume = value;
-                          });
-                          _saveSettings();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('Hauteur de la voix'),
-                      Slider(
-                        value: settings.pitch,
-                        min: -100,
-                        max: 100,
-                        divisions: 40,
-                        label: '${settings.pitch.round()}Hz',
-                        onChanged: (value) {
-                          setState(() {
-                            settings.pitch = value;
-                          });
-                          _saveSettings();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Theme.of(context).colorScheme.primary.withOpacity(0.1),
+            Colors.white,
+          ],
         ),
       ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Paramètres de la voix',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSliderSetting(
+                      icon: Icons.speed,
+                      title: 'Vitesse de lecture',
+                      value: _speechRate,
+                      min: 0.5,
+                      max: 2.0,
+                      divisions: 15,
+                      onChanged: (value) {
+                        setState(() {
+                          _speechRate = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSliderSetting(
+                      icon: Icons.volume_up,
+                      title: 'Volume',
+                      value: _volume,
+                      min: 0.0,
+                      max: 1.0,
+                      divisions: 10,
+                      onChanged: (value) {
+                        setState(() {
+                          _volume = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSliderSetting(
+                      icon: Icons.tune,
+                      title: 'Hauteur',
+                      value: _pitch,
+                      min: 0.5,
+                      max: 2.0,
+                      divisions: 15,
+                      onChanged: (value) {
+                        setState(() {
+                          _pitch = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Paramètres de traitement',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSliderSetting(
+                      icon: Icons.library_books,
+                      title: 'Chapitres en parallèle',
+                      value: _maxParallelChapters.toDouble(),
+                      min: 1,
+                      max: 10,
+                      divisions: 9,
+                      onChanged: (value) {
+                        setState(() {
+                          _maxParallelChapters = value.round();
+                        });
+                      },
+                      valueDisplay: (value) => value.round().toString(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('Annuler'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await _saveSettings();
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Enregistrer'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSliderSetting({
+    required IconData icon,
+    required String title,
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
+    required ValueChanged<double> onChanged,
+    String Function(double)? valueDisplay,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              valueDisplay?.call(value) ?? value.toStringAsFixed(1),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          divisions: divisions,
+          activeColor: Theme.of(context).colorScheme.primary,
+          inactiveColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }
