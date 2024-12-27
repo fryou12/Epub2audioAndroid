@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/tts_service.dart';
 
 class TTSDrawer extends StatefulWidget {
@@ -23,11 +24,28 @@ class _TTSDrawerState extends State<TTSDrawer> {
   List<String> _engines = [];
   List<String> _languages = [];
   List<String> _voices = [];
+  bool isDarkTheme = true;
 
   @override
   void initState() {
     super.initState();
+    _loadThemePreference();
     _initializeTTS();
+  }
+
+  Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkTheme = prefs.getBool('isDarkTheme') ?? true;
+    });
+  }
+
+  Future<void> _toggleTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkTheme = !isDarkTheme;
+      prefs.setBool('isDarkTheme', isDarkTheme);
+    });
   }
 
   Future<void> _initializeTTS() async {
@@ -66,30 +84,9 @@ class _TTSDrawerState extends State<TTSDrawer> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Drawer(
-      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+      backgroundColor: isDarkTheme ? Colors.grey[850] : Colors.white,
       child: Column(
         children: [
-          Container(
-            height: kToolbarHeight + MediaQuery.of(context).padding.top,
-            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              border: Border(
-                bottom: BorderSide(
-                  color: Colors.white,
-                  width: 1,
-                ),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'Configuration TTS',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-          ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -150,14 +147,36 @@ class _TTSDrawerState extends State<TTSDrawer> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Thème',
+                  style: TextStyle(
+                    color: isDarkTheme ? Colors.white : Colors.black,
+                    fontSize: 16,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    isDarkTheme ? Icons.wb_sunny : Icons.nightlight_round,
+                    color: isDarkTheme ? Colors.white : Colors.black,
+                  ),
+                  onPressed: _toggleTheme,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: ElevatedButton.icon(
               onPressed: widget.onSettingsPressed,
               icon: const Icon(Icons.settings),
               label: const Text('Paramètres'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: isDarkTheme ? Colors.grey[700] : Colors.blue,
+                foregroundColor: isDarkTheme ? Colors.white : Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
@@ -182,14 +201,14 @@ class _TTSDrawerState extends State<TTSDrawer> {
       children: [
         Row(
           children: [
-            Icon(icon, color: Colors.white, size: 20),
+            Icon(icon, color: isDarkTheme ? Colors.white : Colors.black, size: 20),
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: isDarkTheme ? Colors.white : Colors.black,
               ),
             ),
           ],
@@ -197,10 +216,10 @@ class _TTSDrawerState extends State<TTSDrawer> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: isDarkTheme ? Colors.grey[700] : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: isDarkTheme ? Colors.grey[600] : Colors.grey[200],
             ),
           ),
           child: DropdownButtonFormField<String>(
@@ -211,7 +230,7 @@ class _TTSDrawerState extends State<TTSDrawer> {
                 child: Text(
                   item,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDarkTheme ? Colors.white : Colors.black,
                   ),
                 ),
               );
@@ -227,12 +246,12 @@ class _TTSDrawerState extends State<TTSDrawer> {
                 borderSide: BorderSide.none,
               ),
               filled: true,
-              fillColor: Colors.transparent,
+              fillColor: isDarkTheme ? Colors.grey[700] : Colors.white,
             ),
-            dropdownColor: theme.colorScheme.primary,
+            dropdownColor: isDarkTheme ? Colors.grey[700] : Colors.white,
             icon: Icon(
               Icons.arrow_drop_down,
-              color: Colors.white,
+              color: isDarkTheme ? Colors.white : Colors.black,
             ),
           ),
         ),

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 import '../screens/settings_screen.dart';
 import '../services/tts_service.dart';
+import '../providers/theme_provider.dart';
 
 class AppDrawer extends StatefulWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  AppDrawer({Key? key}) : super(key: key);
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -94,56 +95,64 @@ class _AppDrawerState extends State<AppDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: AppColors.drawerBackground,
+      backgroundColor: AppColors.current.drawerBackground,
       child: Column(
         children: [
           Container(
             height: kToolbarHeight + MediaQuery.of(context).padding.top,
             padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
             decoration: BoxDecoration(
-              color: AppColors.headerBackground,
+              color: AppColors.current.headerBackground,
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.white,
+                  color: AppColors.current.dividerColor,
                   width: 1,
                 ),
               ),
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'ePub to Audio',
               style: TextStyle(
                 fontSize: 20,
-                color: Colors.white,
+                color: AppColors.current.primaryText,
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.home_outlined, color: Colors.white),
-            title: const Text(
+            leading: Icon(Icons.home_outlined, color: AppColors.current.iconColor),
+            title: Text(
               'Accueil',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.current.primaryText),
             ),
             onTap: () {
               Navigator.pop(context);
             },
           ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, top: 16),
-            child: Row(
-              children: [
-                Icon(Icons.record_voice_over, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Configuration TTS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          ListTile(
+            leading: Icon(Icons.settings_outlined, color: AppColors.current.iconColor),
+            title: Text(
+              'Paramètres',
+              style: TextStyle(color: AppColors.current.primaryText),
             ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.help_outline, color: AppColors.current.iconColor),
+            title: Text(
+              'Aide',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            onTap: () {
+              // Action pour l'aide
+            },
           ),
           _buildDropdownTile(
             title: 'Moteur TTS',
@@ -193,48 +202,37 @@ class _AppDrawerState extends State<AppDrawer> {
               }
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, color: Colors.white),
-            title: const Text(
-              'Paramètres',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+          Spacer(),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: ListTile(
+              title: Text(
+                ' ',
+                style: TextStyle(color: AppColors.current.primaryText),
+              ),
+              trailing: IconButton(
+                icon: Icon(
+                  AppColors.current == AppColors.darkTheme 
+                      ? Icons.wb_sunny 
+                      : Icons.nightlight_round,
+                  color: AppColors.current.iconColor,
                 ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline, color: Colors.white),
-            title: const Text(
-              'Aide',
-              style: TextStyle(color: Colors.white),
+                onPressed: () {
+                  ThemeProvider().toggleTheme();
+                  setState(() {});
+                },
+              ),
             ),
-            onTap: () {
-              // Fonctionnalité d'aide à implémenter plus tard
-            },
           ),
-          const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
                   'Version: 1.0.0',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.current.primaryText),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.wb_sunny, color: Colors.white),
-                onPressed: () {
-                  // Fonctionnalité de changement de thème à implémenter plus tard
-                },
               ),
             ],
           ),
@@ -251,28 +249,28 @@ class _AppDrawerState extends State<AppDrawer> {
     required void Function(String?) onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
+              Icon(icon, color: AppColors.current.iconColor, size: 20),
+              SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.current.primaryText,
                   fontSize: 14,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.current.drawerBackground,
               borderRadius: BorderRadius.circular(8),
             ),
             child: DropdownButtonHideUnderline(
@@ -283,16 +281,16 @@ class _AppDrawerState extends State<AppDrawer> {
                     value: item,
                     child: Text(
                       item,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: AppColors.current.primaryText),
                     ),
                   );
                 }).toList(),
                 onChanged: onChanged,
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                dropdownColor: AppColors.drawerBackground,
-                style: const TextStyle(color: Colors.white),
+                icon: Icon(Icons.arrow_drop_down, color: AppColors.current.iconColor),
+                dropdownColor: AppColors.current.drawerBackground,
+                style: TextStyle(color: AppColors.current.primaryText),
                 isExpanded: true,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
           ),

@@ -14,10 +14,10 @@ class DottedContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.containerBackground,
+      color: AppColors.current.containerBackground,
       child: CustomPaint(
         painter: DottedBorderPainter(
-          color: Colors.white,
+          color: AppColors.current.dottedBorderColor,
           strokeWidth: 2.0,
           gap: 5.0,
           radius: 8.0,
@@ -29,7 +29,7 @@ class DottedContainer extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: DotPatternPainter(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.current.dottedBorderColor,
                     spacing: 20.0,
                     dotSize: 1.0,
                   ),

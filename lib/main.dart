@@ -4,6 +4,7 @@ import 'widgets/app_drawer.dart';
 import 'widgets/dotted_container.dart';
 import 'constants/colors.dart';
 import 'services/tts_service.dart';
+import 'providers/theme_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,17 +15,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EPUB to Audio',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2196F3),
-          primary: const Color(0xFF2196F3),
-          secondary: const Color(0xFF03A9F4),
-        ),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
+    return ListenableBuilder(
+      listenable: ThemeProvider(),
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'EPUB to Audio',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColors.current.primaryAccent,
+              primary: AppColors.current.primaryAccent,
+              secondary: AppColors.current.secondaryAccent,
+              background: AppColors.current.drawerBackground,
+              surface: AppColors.current.headerBackground,
+              onPrimary: AppColors.current.primaryText,
+              onSecondary: AppColors.current.primaryText,
+              onBackground: AppColors.current.primaryText,
+              onSurface: AppColors.current.primaryText,
+            ),
+            useMaterial3: true,
+          ),
+          home: const MyHomePage(),
+        );
+      },
     );
   }
 }
@@ -86,16 +98,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.drawerBackground,
+      backgroundColor: Theme.of(context).colorScheme.background,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.headerBackground,
+            color: AppColors.current.headerBackground,
             border: Border(
               bottom: BorderSide(
-                color: Colors.white,
+                color: AppColors.current.dividerColor,
                 width: 1,
               ),
             ),
@@ -106,27 +118,40 @@ class _MyHomePageState extends State<MyHomePage> {
             centerTitle: true,
             leading: Builder(
               builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
+                icon: Icon(
+                  Icons.menu,
+                  color: AppColors.current.iconColor,
+                ),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
-            title: const Row(
+            title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.menu_book_outlined, color: Colors.white, size: 24),
-                SizedBox(width: 8),
+                Icon(
+                  Icons.menu_book_outlined, 
+                  color: AppColors.current.iconColor, 
+                  size: 24
+                ),
+                const SizedBox(width: 8),
                 Text(
                   'ePub vers Audio',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: AppColors.current.primaryText,
+                  ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.volume_up, color: Colors.white, size: 24),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.volume_up, 
+                  color: AppColors.current.iconColor, 
+                  size: 24
+                ),
               ],
             ),
           ),
         ),
       ),
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(),
       body: Stack(
         children: [
           Padding(
@@ -160,19 +185,29 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           ElevatedButton.icon(
-                            icon: const Icon(Icons.file_present_outlined, color: Colors.white),
-                            label: const Text(
+                            icon: Icon(
+                              Icons.file_present_outlined,
+                              color: AppColors.current.iconColor,
+                            ),
+                            label: Text(
                               'Fichier',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: AppColors.current.primaryText,
+                              ),
                             ),
                             onPressed: _pickFile,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.current.buttonBackground,
+                              foregroundColor: AppColors.current.primaryText,
+                              elevation: 2,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              minimumSize: const Size(100, 40),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -180,7 +215,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             Expanded(
                               child: Text(
                                 _getFileName(),
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: AppColors.current.primaryText,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -192,19 +229,29 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           ElevatedButton.icon(
-                            icon: const Icon(Icons.folder_outlined, color: Colors.white),
-                            label: const Text(
+                            icon: Icon(
+                              Icons.folder_outlined,
+                              color: AppColors.current.iconColor,
+                            ),
+                            label: Text(
                               'Dossier',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                color: AppColors.current.primaryText,
+                              ),
                             ),
                             onPressed: _pickDirectory,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.current.buttonBackground,
+                              foregroundColor: AppColors.current.primaryText,
+                              elevation: 2,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              minimumSize: const Size(100, 40),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -212,7 +259,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             Expanded(
                               child: Text(
                                 _getDirectoryName(),
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: AppColors.current.primaryText,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -232,55 +281,53 @@ class _MyHomePageState extends State<MyHomePage> {
                           runSpacing: 8,
                           children: [
                             ElevatedButton.icon(
-                              icon: const Icon(Icons.analytics_outlined, color: Colors.white),
-                              label: const Text(
+                              icon: Icon(Icons.analytics_outlined, color: Theme.of(context).colorScheme.primary),
+                              label: Text(
                                 'Analyser',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                               ),
                               onPressed: _selectedFilePath != null ? () {} : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[800],
-                                foregroundColor: Colors.white,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 minimumSize: const Size(100, 40),
-                                elevation: 0,
                               ).copyWith(
                                 backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                                   (Set<MaterialState> states) {
                                     if (states.contains(MaterialState.disabled)) {
-                                      return Colors.grey[800]?.withOpacity(0.75);
+                                      return Theme.of(context).colorScheme.primary.withOpacity(0.75);
                                     }
-                                    return Colors.grey[800];
+                                    return Theme.of(context).colorScheme.primary;
                                   },
                                 ),
                               ),
                             ),
                             ElevatedButton.icon(
-                              icon: const Icon(Icons.audiotrack_outlined, color: Colors.white),
-                              label: const Text(
+                              icon: Icon(Icons.audiotrack_outlined, color: Theme.of(context).colorScheme.primary),
+                              label: Text(
                                 'Convertir',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                               ),
                               onPressed: _selectedDirectoryPath != null ? () {} : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[800],
-                                foregroundColor: Colors.white,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 minimumSize: const Size(100, 40),
-                                elevation: 0,
                               ).copyWith(
                                 backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                                   (Set<MaterialState> states) {
                                     if (states.contains(MaterialState.disabled)) {
-                                      return Colors.grey[800]?.withOpacity(0.75);
+                                      return Theme.of(context).colorScheme.primary.withOpacity(0.75);
                                     }
-                                    return Colors.grey[800];
+                                    return Theme.of(context).colorScheme.primary;
                                   },
                                 ),
                               ),

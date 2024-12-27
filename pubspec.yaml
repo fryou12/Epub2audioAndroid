@@ -10,11 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  flutter_tts: ^3.8.5
+  file_picker: ^6.1.1
   shared_preferences: ^2.2.2
+  flutter_tts: ^3.8.5
   http: ^0.13.6
   path_provider: ^2.1.1
-  file_picker: ^6.1.1
   path: ^1.8.3
   epub_parser: ^3.0.1
 

@@ -102,6 +102,10 @@ class TTSService {
     _selectedVoice = voice;
   }
 
+  Future<void> setVoice2(String voice) async {
+    await _flutterTts.setVoice({"name": voice});
+  }
+
   Future<String?> getCurrentVoice() async {
     if (_selectedVoice != null) {
       return _selectedVoice;

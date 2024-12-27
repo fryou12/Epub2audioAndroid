@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 import '../services/tts_service.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -22,179 +23,144 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.drawerBackground,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.headerBackground,
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.white,
-                width: 1,
-              ),
-            ),
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            iconTheme: const IconThemeData(color: Colors.white),
-            title: const Text(
-              'Paramètres',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
+      backgroundColor: AppColors.current.drawerBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.current.headerBackground,
+        title: Text(
+          'Paramètres',
+          style: TextStyle(color: AppColors.current.primaryText),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.current.iconColor),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          _buildSection(
-            title: 'Paramètres TTS',
-            children: [
-              _buildSliderTile(
-                title: 'Vitesse',
-                value: _settings['voice_settings']['rate'],
-                min: 0.5,
-                max: 2.0,
-                onChanged: (value) {
-                  setState(() {
-                    _settings['voice_settings']['rate'] = value;
-                  });
-                  _ttsService.setRate(value);
-                },
-              ),
-              _buildSliderTile(
-                title: 'Volume',
-                value: _settings['voice_settings']['volume'],
-                min: 0.0,
-                max: 1.0,
-                onChanged: (value) {
-                  setState(() {
-                    _settings['voice_settings']['volume'] = value;
-                  });
-                  _ttsService.setVolume(value);
-                },
-              ),
-              _buildSliderTile(
-                title: 'Hauteur',
-                value: _settings['voice_settings']['pitch'],
-                min: 0.5,
-                max: 2.0,
-                onChanged: (value) {
-                  setState(() {
-                    _settings['voice_settings']['pitch'] = value;
-                  });
-                  _ttsService.setPitch(value);
-                },
-              ),
-            ],
+          SwitchListTile(
+            title: Text(
+              'Mode Sombre',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            value: AppColors.current == AppColors.darkTheme,
+            onChanged: (bool value) {
+              ThemeProvider().toggleTheme();
+              setState(() {});
+            },
+            activeColor: AppColors.current.primaryAccent,
           ),
-          _buildSection(
-            title: 'Paramètres de conversion',
-            children: [
-              _buildSliderTile(
-                title: 'Chapitres simultanés',
-                value: _settings['maxParallelChapters'].toDouble(),
-                min: 1,
-                max: 5,
-                onChanged: (value) {
+          ListTile(
+            title: Text(
+              'Voix',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            trailing: DropdownButton<String>(
+              value: _settings['voice_settings']['voice'],
+              items: _settings['available_voices']?.map<DropdownMenuItem<String>>((String voice) {
+                return DropdownMenuItem<String>(
+                  value: voice,
+                  child: Text(
+                    voice,
+                    style: TextStyle(color: AppColors.current.primaryText),
+                  ),
+                );
+              })?.toList() ?? [],
+              onChanged: (String? newValue) {
+                if (newValue != null) {
                   setState(() {
-                    _settings['maxParallelChapters'] = value.toInt();
+                    _settings['voice_settings']['voice'] = newValue;
                   });
-                  _ttsService.updateSettings(_settings);
-                },
-                displayValue: (value) => value.toInt().toString(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+                  _ttsService.setVoice(newValue);
+                }
+              },
+              dropdownColor: AppColors.current.drawerBackground,
+              icon: Icon(Icons.arrow_drop_down, color: AppColors.current.iconColor),
             ),
           ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: children,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSliderTile({
-    required String title,
-    required double value,
-    required double min,
-    required double max,
-    required ValueChanged<double> onChanged,
-    String Function(double)? displayValue,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
+          ListTile(
+            title: Text(
+              'Vitesse de lecture',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            subtitle: Slider(
+              value: _settings['voice_settings']['rate'],
+              min: 0.5,
+              max: 2.0,
+              divisions: 15,
+              label: _settings['voice_settings']['rate'].toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _settings['voice_settings']['rate'] = value;
+                });
+                _ttsService.setRate(value);
+              },
+              activeColor: AppColors.current.sliderActiveColor,
+              inactiveColor: AppColors.current.sliderInactiveColor,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: SliderTheme(
-                  data: SliderThemeData(
-                    activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withOpacity(0.3),
-                    thumbColor: Colors.white,
-                    overlayColor: Colors.white.withOpacity(0.1),
-                  ),
-                  child: Slider(
-                    value: value,
-                    min: min,
-                    max: max,
-                    onChanged: onChanged,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 40,
-                child: Text(
-                  displayValue?.call(value) ?? value.toStringAsFixed(1),
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+          ListTile(
+            title: Text(
+              'Hauteur de la voix',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            subtitle: Slider(
+              value: _settings['voice_settings']['pitch'],
+              min: 0.5,
+              max: 2.0,
+              divisions: 15,
+              label: _settings['voice_settings']['pitch'].toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _settings['voice_settings']['pitch'] = value;
+                });
+                _ttsService.setPitch(value);
+              },
+              activeColor: AppColors.current.sliderActiveColor,
+              inactiveColor: AppColors.current.sliderInactiveColor,
+            ),
+          ),
+          ListTile(
+            title: Text(
+              'Volume',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            subtitle: Slider(
+              value: _settings['voice_settings']['volume'],
+              min: 0.0,
+              max: 1.0,
+              divisions: 10,
+              label: _settings['voice_settings']['volume'].toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _settings['voice_settings']['volume'] = value;
+                });
+                _ttsService.setVolume(value);
+              },
+              activeColor: AppColors.current.sliderActiveColor,
+              inactiveColor: AppColors.current.sliderInactiveColor,
+            ),
+          ),
+          ListTile(
+            title: Text(
+              'Chapitres simultanés',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            subtitle: Slider(
+              value: _settings['maxParallelChapters'].toDouble(),
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: _settings['maxParallelChapters'].toString(),
+              onChanged: (double value) {
+                setState(() {
+                  _settings['maxParallelChapters'] = value.toInt();
+                });
+                _ttsService.updateSettings(_settings);
+              },
+              activeColor: AppColors.current.sliderActiveColor,
+              inactiveColor: AppColors.current.sliderInactiveColor,
+            ),
           ),
         ],
       ),
