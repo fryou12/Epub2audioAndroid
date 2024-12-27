@@ -1,0 +1,39 @@
+name: epub_to_audio
+description: A Flutter application to convert EPUB files to audio using TTS.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  flutter_riverpod: ^2.4.9
+  file_picker: 
+    git:
+      url: https://github.com/miguelpruivo/flutter_file_picker.git
+      ref: master
+  path: ^1.8.3
+  epub_parser: ^3.0.1
+  flutter_tts: ^3.8.5
+  just_audio: ^0.9.36
+  path_provider: ^2.1.1
+  shared_preferences: ^2.2.2
+  logger: ^2.0.2+1
+  permission_handler: ^11.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/python/
+    - assets/python/lib/
+    - assets/python/edge_tts_wrapper.py
+    - assets/python/lib/site-packages/
+    - assets/python/lib/site-packages/edge_tts/
