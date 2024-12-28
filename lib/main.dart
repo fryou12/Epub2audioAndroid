@@ -1,22 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'widgets/app_drawer.dart';
-import 'widgets/dotted_container.dart';
 import 'constants/colors.dart';
 import 'services/tts_service.dart';
 import 'providers/theme_provider.dart';
+import 'providers/extractor_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'widgets/dotted_container.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final themeProvider = ThemeProvider();
-  await themeProvider.loadThemePreference();
-  AppColors.current = themeProvider.isDarkTheme ? AppColors.darkTheme : AppColors.lightTheme;
-  
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ExtractorProvider()),
       ],
       child: const MyApp(),
     ),
@@ -31,9 +29,9 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'EPUB to Audio',
+          title: 'ePub to Audio',
           theme: themeProvider.isDarkTheme ? ThemeData.dark() : ThemeData.light(),
-          home: MyHomePage(),
+          home: const MyHomePage(),
         );
       },
     );
@@ -48,14 +46,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  /// TODO: Use this field in your widget tree
-  final _ttsService = TTSService(); 
-
-  /// TODO: Use this field in your widget tree
-  final bool _showSettings = false; 
-
+  final TTSService _ttsService = TTSService();
   String? _selectedFilePath;
   String? _selectedDirectoryPath;
+  bool _isAnalyzing = false;
 
   Future<void> _pickFile() async {
     try {
@@ -70,7 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } catch (e) {
-      debugPrint('Erreur lors de la sélection du fichier: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la sélection du fichier: ${e.toString()}')),
+      );
     }
   }
 
@@ -84,7 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } catch (e) {
-      debugPrint('Erreur lors de la sélection du dossier: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la sélection du dossier: ${e.toString()}')),
+      );
     }
   }
 
@@ -96,6 +94,53 @@ class _MyHomePageState extends State<MyHomePage> {
   String _getDirectoryName() {
     if (_selectedDirectoryPath == null) return '';
     return _selectedDirectoryPath!.split('/').last;
+  }
+
+  Future<void> _analyzeEpub() async {
+    if (_selectedFilePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner un fichier ePub')),
+      );
+      return;
+    }
+
+    if (_selectedDirectoryPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner un dossier de sortie')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    try {
+      final extractorProvider = Provider.of<ExtractorProvider>(context, listen: false);
+      final selectedExtractor = extractorProvider.selectedExtractor;
+      
+      final result = await Process.run('python3', [
+        'extractors/${selectedExtractor}.py',
+        _selectedFilePath!,
+        _selectedDirectoryPath!,
+      ]);
+
+      if (result.exitCode != 0) {
+        throw Exception(result.stderr.toString());
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Analyse terminée avec succès')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'analyse: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isAnalyzing = false;
+      });
+    }
   }
 
   @override
@@ -299,9 +344,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 'Analyser',
                                 style: TextStyle(color: AppColors.current.primaryText),
                               ),
-                              onPressed: _selectedFilePath != null ? () {
-                                _ttsService.speak('Analyzing file...');
-                              } : null,
+                              onPressed: _selectedFilePath != null ? _analyzeEpub : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.current.buttonBackground,
                                 foregroundColor: AppColors.current.primaryText,
@@ -328,7 +371,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 style: TextStyle(color: AppColors.current.primaryText),
                               ),
                               onPressed: _selectedDirectoryPath != null ? () {
-                                if (_showSettings) {
+                                if (false) {
                                   showDialog(
                                     context: context,
                                     builder: (context) => AlertDialog(

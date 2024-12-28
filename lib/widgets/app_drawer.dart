@@ -3,6 +3,7 @@ import '../constants/colors.dart';
 import '../screens/settings_screen.dart';
 import '../services/tts_service.dart';
 import '../providers/theme_provider.dart';
+import '../providers/extractor_provider.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -26,6 +27,7 @@ class _AppDrawerState extends State<AppDrawer> {
     super.initState();
     _initializeTTS();
     _loadSavedSettings();
+    ExtractorProvider().loadSavedExtractor();
   }
 
   Future<void> _initializeTTS() async {
@@ -175,6 +177,48 @@ class _AppDrawerState extends State<AppDrawer> {
                 });
               }
             },
+          ),
+          ExpansionTile(
+            leading: Icon(Icons.extension, color: AppColors.current.iconColor),
+            title: Text(
+              'Méthode d\'extraction',
+              style: TextStyle(color: AppColors.current.primaryText),
+            ),
+            children: [
+              SingleChildScrollView(
+                child: Consumer<ExtractorProvider>(
+                  builder: (context, extractorProvider, _) {
+                    return Column(
+                      children: extractorProvider.availableExtractors.map((extractor) {
+                        return RadioListTile<String>(
+                          title: Text(
+                            extractor.replaceAll('_', ' ').split(' ').map((word) => 
+                              word[0].toUpperCase() + word.substring(1)
+                            ).join(' '),
+                            style: TextStyle(color: AppColors.current.primaryText),
+                          ),
+                          subtitle: Text(
+                            extractorProvider.extractorDescriptions[extractor] ?? '',
+                            style: TextStyle(
+                              color: AppColors.current.primaryText.withOpacity(0.7),
+                              fontSize: 12,
+                            ),
+                          ),
+                          value: extractor,
+                          groupValue: extractorProvider.selectedExtractor,
+                          onChanged: (String? value) {
+                            if (value != null) {
+                              extractorProvider.setExtractor(value);
+                            }
+                          },
+                          activeColor: AppColors.current.primaryAccent,
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
           ListTile(
             leading: Icon(Icons.settings_outlined, color: AppColors.current.iconColor),
