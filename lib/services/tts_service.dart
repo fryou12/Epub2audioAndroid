@@ -145,39 +145,42 @@ class TTSService {
     }
   }
 
+  // Getters
+  double getRate() => _settings['voice_settings']['rate'];
+  double getPitch() => _settings['voice_settings']['pitch'];
+  double getVolume() => _settings['voice_settings']['volume'];
+  int getMaxParallelChapters() => _settings['maxParallelChapters'];
+
+  // Setters
   Future<void> setRate(double rate) async {
     _settings['voice_settings']['rate'] = rate;
-    if (_currentEngine == 'Edge TTS') {
-      _edgeTTS.updateSettings(_settings['voice_settings']);
-    } else {
+    if (_currentEngine == 'System TTS') {
       await _flutterTts.setSpeechRate(rate);
     }
-    await _saveSettings();
-  }
-
-  Future<void> setVolume(double volume) async {
-    _settings['voice_settings']['volume'] = volume;
-    if (_currentEngine == 'Edge TTS') {
-      _edgeTTS.updateSettings(_settings['voice_settings']);
-    } else {
-      await _flutterTts.setVolume(volume);
-    }
+    _edgeTTS.updateSettings(_settings['voice_settings']);
     await _saveSettings();
   }
 
   Future<void> setPitch(double pitch) async {
     _settings['voice_settings']['pitch'] = pitch;
-    if (_currentEngine == 'Edge TTS') {
-      _edgeTTS.updateSettings(_settings['voice_settings']);
-    } else {
+    if (_currentEngine == 'System TTS') {
       await _flutterTts.setPitch(pitch);
     }
+    _edgeTTS.updateSettings(_settings['voice_settings']);
     await _saveSettings();
   }
 
-  Future<void> updateSettings(Map<String, dynamic> newSettings) async {
-    _settings = newSettings;
+  Future<void> setVolume(double volume) async {
+    _settings['voice_settings']['volume'] = volume;
+    if (_currentEngine == 'System TTS') {
+      await _flutterTts.setVolume(volume);
+    }
     _edgeTTS.updateSettings(_settings['voice_settings']);
+    await _saveSettings();
+  }
+
+  Future<void> setMaxParallelChapters(int value) async {
+    _settings['maxParallelChapters'] = value;
     await _saveSettings();
   }
 

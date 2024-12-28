@@ -36,16 +36,17 @@ class _TTSDrawerState extends State<TTSDrawer> {
   Future<void> _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkTheme = prefs.getBool('isDarkTheme') ?? true;
+      isDarkTheme = prefs.getBool('isDarkTheme') ?? true; // Default to true if not set
     });
   }
 
   Future<void> _toggleTheme() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkTheme = !isDarkTheme;
-      prefs.setBool('isDarkTheme', isDarkTheme);
+      isDarkTheme = !isDarkTheme; // Toggle the theme
     });
+    // Save the theme preference
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkTheme', isDarkTheme);
   }
 
   Future<void> _initializeTTS() async {
@@ -84,7 +85,7 @@ class _TTSDrawerState extends State<TTSDrawer> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Drawer(
-      backgroundColor: isDarkTheme ? Colors.grey[850] : Colors.white,
+      backgroundColor: isDarkTheme ? Colors.grey[850] : theme.scaffoldBackgroundColor,
       child: Column(
         children: [
           Expanded(
@@ -152,15 +153,12 @@ class _TTSDrawerState extends State<TTSDrawer> {
               children: [
                 Text(
                   'Thème',
-                  style: TextStyle(
-                    color: isDarkTheme ? Colors.white : Colors.black,
-                    fontSize: 16,
-                  ),
+                  style: theme.textTheme.bodyMedium,
                 ),
                 IconButton(
                   icon: Icon(
                     isDarkTheme ? Icons.wb_sunny : Icons.nightlight_round,
-                    color: isDarkTheme ? Colors.white : Colors.black,
+                    color: theme.textTheme.bodyMedium.color,
                   ),
                   onPressed: _toggleTheme,
                 ),
@@ -172,7 +170,10 @@ class _TTSDrawerState extends State<TTSDrawer> {
             child: ElevatedButton.icon(
               onPressed: widget.onSettingsPressed,
               icon: const Icon(Icons.settings),
-              label: const Text('Paramètres'),
+              label: Text(
+                'Paramètres',
+                style: theme.textTheme.bodyMedium,
+              ),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
                 backgroundColor: isDarkTheme ? Colors.grey[700] : Colors.blue,
@@ -201,15 +202,11 @@ class _TTSDrawerState extends State<TTSDrawer> {
       children: [
         Row(
           children: [
-            Icon(icon, color: isDarkTheme ? Colors.white : Colors.black, size: 20),
+            Icon(icon, color: theme.textTheme.bodyMedium.color, size: 20),
             const SizedBox(width: 8),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDarkTheme ? Colors.white : Colors.black,
-              ),
+              style: theme.textTheme.bodyMedium,
             ),
           ],
         ),
@@ -219,7 +216,7 @@ class _TTSDrawerState extends State<TTSDrawer> {
             color: isDarkTheme ? Colors.grey[700] : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDarkTheme ? Colors.grey[600] : Colors.grey[200],
+              color: isDarkTheme ? (Colors.grey[600] ?? Colors.grey) : (Colors.grey[200] ?? Colors.grey),
             ),
           ),
           child: DropdownButtonFormField<String>(
@@ -229,9 +226,7 @@ class _TTSDrawerState extends State<TTSDrawer> {
                 value: item,
                 child: Text(
                   item,
-                  style: TextStyle(
-                    color: isDarkTheme ? Colors.white : Colors.black,
-                  ),
+                  style: theme.textTheme.bodyMedium,
                 ),
               );
             }).toList(),
@@ -251,7 +246,7 @@ class _TTSDrawerState extends State<TTSDrawer> {
             dropdownColor: isDarkTheme ? Colors.grey[700] : Colors.white,
             icon: Icon(
               Icons.arrow_drop_down,
-              color: isDarkTheme ? Colors.white : Colors.black,
+              color: theme.textTheme.bodyMedium.color,
             ),
           ),
         ),

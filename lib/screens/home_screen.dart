@@ -59,13 +59,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.drawerBackground,
+      backgroundColor: AppColors.darkTheme.drawerBackground,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
+        preferredSize: Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.headerBackground,
+            color: AppColors.darkTheme.headerBackground,
             border: Border(
               bottom: BorderSide(
                 color: Colors.white,
@@ -79,11 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             leading: Builder(
               builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
+                icon: Icon(Icons.menu, color: Colors.white),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
-            title: const Row(
+            title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.menu_book_outlined, color: Colors.white, size: 24),
@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(),
       body: Stack(
         children: [
           Padding(

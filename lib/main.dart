@@ -5,9 +5,22 @@ import 'widgets/dotted_container.dart';
 import 'constants/colors.dart';
 import 'services/tts_service.dart';
 import 'providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final themeProvider = ThemeProvider();
+  await themeProvider.loadThemePreference();
+  AppColors.current = themeProvider.isDarkTheme ? AppColors.darkTheme : AppColors.lightTheme;
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: themeProvider),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,26 +28,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: ThemeProvider(),
-      builder: (context, child) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
         return MaterialApp(
           title: 'EPUB to Audio',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppColors.current.primaryAccent,
-              primary: AppColors.current.primaryAccent,
-              secondary: AppColors.current.secondaryAccent,
-              background: AppColors.current.drawerBackground,
-              surface: AppColors.current.headerBackground,
-              onPrimary: AppColors.current.primaryText,
-              onSecondary: AppColors.current.primaryText,
-              onBackground: AppColors.current.primaryText,
-              onSurface: AppColors.current.primaryText,
-            ),
-            useMaterial3: true,
-          ),
-          home: const MyHomePage(),
+          theme: themeProvider.isDarkTheme ? ThemeData.dark() : ThemeData.light(),
+          home: MyHomePage(),
         );
       },
     );
@@ -49,10 +48,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final TTSService _ttsService = TTSService();
+  /// TODO: Use this field in your widget tree
+  final _ttsService = TTSService(); 
+
+  /// TODO: Use this field in your widget tree
+  final bool _showSettings = false; 
+
   String? _selectedFilePath;
   String? _selectedDirectoryPath;
-  bool _showSettings = false;
 
   Future<void> _pickFile() async {
     try {
@@ -96,9 +99,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadThemePreference(); // Load the theme preference
+  }
+
+  void _loadThemePreference() async {
+    await ThemeProvider().loadThemePreference();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -281,15 +294,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           runSpacing: 8,
                           children: [
                             ElevatedButton.icon(
-                              icon: Icon(Icons.analytics_outlined, color: Theme.of(context).colorScheme.primary),
+                              icon: Icon(Icons.analytics_outlined, color: AppColors.current.iconColor),
                               label: Text(
                                 'Analyser',
-                                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                                style: TextStyle(color: AppColors.current.primaryText),
                               ),
-                              onPressed: _selectedFilePath != null ? () {} : null,
+                              onPressed: _selectedFilePath != null ? () {
+                                _ttsService.speak('Analyzing file...');
+                              } : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                backgroundColor: AppColors.current.buttonBackground,
+                                foregroundColor: AppColors.current.primaryText,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -299,23 +314,41 @@ class _MyHomePageState extends State<MyHomePage> {
                                 backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                                   (Set<MaterialState> states) {
                                     if (states.contains(MaterialState.disabled)) {
-                                      return Theme.of(context).colorScheme.primary.withOpacity(0.75);
+                                      return AppColors.current.buttonBackground.withOpacity(0.75);
                                     }
-                                    return Theme.of(context).colorScheme.primary;
+                                    return AppColors.current.buttonBackground;
                                   },
                                 ),
                               ),
                             ),
                             ElevatedButton.icon(
-                              icon: Icon(Icons.audiotrack_outlined, color: Theme.of(context).colorScheme.primary),
+                              icon: Icon(Icons.audiotrack_outlined, color: AppColors.current.iconColor),
                               label: Text(
                                 'Convertir',
-                                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                                style: TextStyle(color: AppColors.current.primaryText),
                               ),
-                              onPressed: _selectedDirectoryPath != null ? () {} : null,
+                              onPressed: _selectedDirectoryPath != null ? () {
+                                if (_showSettings) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Settings'),
+                                      content: Text('Settings content goes here'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  _ttsService.speak('Proceeding with action...');
+                                }
+                              } : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                backgroundColor: AppColors.current.buttonBackground,
+                                foregroundColor: AppColors.current.primaryText,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -325,9 +358,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 backgroundColor: MaterialStateProperty.resolveWith<Color?>(
                                   (Set<MaterialState> states) {
                                     if (states.contains(MaterialState.disabled)) {
-                                      return Theme.of(context).colorScheme.primary.withOpacity(0.75);
+                                      return AppColors.current.buttonBackground.withOpacity(0.75);
                                     }
-                                    return Theme.of(context).colorScheme.primary;
+                                    return AppColors.current.buttonBackground;
                                   },
                                 ),
                               ),

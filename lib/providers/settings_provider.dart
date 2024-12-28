@@ -56,6 +56,14 @@ class ConversionSettingsNotifier extends StateNotifier<ConversionSettings> {
   }
 }
 
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+  return await SharedPreferences.getInstance();
+});
+
 final conversionSettingsProvider = StateNotifierProvider<ConversionSettingsNotifier, ConversionSettings>((ref) {
-  throw UnimplementedError();
+  return ref.watch(sharedPreferencesProvider).when(
+    data: (prefs) => ConversionSettingsNotifier(prefs),
+    loading: () => throw UnimplementedError(),
+    error: (e, stack) => throw UnimplementedError(),
+  );
 });

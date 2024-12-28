@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 import '../constants/colors.dart';
+import '../providers/theme_provider.dart';
 
 class DottedContainer extends StatelessWidget {
   final Widget? child;
@@ -13,33 +14,42 @@ class DottedContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.current.containerBackground,
-      child: CustomPaint(
-        painter: DottedBorderPainter(
-          color: AppColors.current.dottedBorderColor,
-          strokeWidth: 2.0,
-          gap: 5.0,
-          radius: 8.0,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: DotPatternPainter(
-                    color: AppColors.current.dottedBorderColor,
-                    spacing: 20.0,
-                    dotSize: 1.0,
-                  ),
-                ),
-              ),
-              if (child != null) child!,
-            ],
+    final themeProvider = ThemeProvider();
+    return ListenableBuilder(
+      listenable: themeProvider,
+      builder: (context, _) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.current.containerBackground,
+            borderRadius: BorderRadius.circular(8.0),
           ),
-        ),
-      ),
+          child: CustomPaint(
+            painter: DottedBorderPainter(
+              color: AppColors.current.dottedBorderColor,
+              strokeWidth: 2.0,
+              gap: 5.0,
+              radius: 8.0,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: DotPatternPainter(
+                        color: AppColors.current.dottedBorderColor,
+                        spacing: 20.0,
+                        dotSize: 1.0,
+                      ),
+                    ),
+                  ),
+                  if (child != null) child!,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

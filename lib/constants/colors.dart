@@ -6,15 +6,15 @@ class AppColors {
     // Arrière-plan de l'en-tête
     headerBackground: Color.fromARGB(255, 62, 62, 62),
     // Arrière-plan du drawer
-    drawerBackground: Color.fromARGB(255, 93, 93, 93),
-    // Arrière-plan des conteneurs
-    containerBackground: Color.fromARGB(255, 140, 138, 138),
+    drawerBackground: Color.fromARGB(255, 49, 49, 49),
+  // Arrière-plan des conteneurs pointillés
+    containerBackground: Color.fromARGB(255, 57, 57, 57),
     // Arrière-plan des boutons
     buttonBackground: Color(0xFF424242),
     // Arrière-plan des boutons désactivés
-    buttonBackgroundDisabled: Color(0xFF616161), // Colors.grey[700]
+    buttonBackgroundDisabled: Color(0xFF616161), 
     // Arrière-plan transparent
-    transparentBackground: Color.fromARGB(158, 70, 63, 63),
+    transparentBackground: Color.fromARGB(255, 100, 100, 100),
 
     // Couleurs du texte et des icônes
     // Texte principal
@@ -34,27 +34,32 @@ class AppColors {
     // Couleur active du curseur
     sliderActiveColor: Colors.white,
     // Couleur inactive du curseur
-    sliderInactiveColor: Color(0x4DFFFFFF), // Colors.white.withOpacity(0.3)
+    sliderInactiveColor: Color(0x4DFFFFFF),
     // Couleur de l'overlay
-    overlayColor: Color(0x1FFFFFFF), // Colors.white.withOpacity(0.1)
+    overlayColor: Color(0x1FFFFFFF),
     // Couleur pour les bordures pointillées
-    dottedBorderColor: Color.fromARGB(255, 165, 165, 165), // Colors.white.withOpacity(0.2)
+    dottedBorderColor: Color.fromARGB(255, 165, 165, 165),
     
     // Accent et Actions
     // Couleur d'accentuation principale
-    primaryAccent: Color.fromARGB(255, 187, 188, 189),
+    primaryAccent: Color.fromARGB(255, 100, 100, 100),
     // Couleur d'accentuation secondaire
-    secondaryAccent: Color.fromARGB(255, 152, 152, 152),
+    secondaryAccent: Color.fromARGB(255, 200, 200, 200),
+
+    // Surface background main
+    surface: Color.fromARGB(255, 120, 120, 120),
+    surfaceText: Color.fromARGB(255, 206, 206, 206),
+    onSurface: Color.fromARGB(255, 179, 179, 179),
   );
 
   // Thème Clair
   static const lightTheme = AppThemeColors(
     // Arrière-plan de l'en-tête
-    headerBackground: Color.fromARGB(245, 186, 186, 186),
+    headerBackground: Color.fromARGB(255, 186, 186, 186),
     // Arrière-plan du drawer
-    drawerBackground: Color.fromARGB(255, 209, 213, 216),
-    // Arrière-plan des conteneurs
-    containerBackground: Color.fromARGB(255, 174, 174, 174),
+    drawerBackground: Color.fromARGB(255, 232, 232, 232),
+    // Arrière-plan des conteneurs pointillés
+    containerBackground: Color.fromARGB(255, 220, 220, 220),
     // Arrière-plan des boutons
     buttonBackground: Color.fromARGB(255, 239, 239, 239),
     // Arrière-plan des boutons désactivés
@@ -72,7 +77,7 @@ class AppColors {
     // Couleur des icônes désactivées
     disabledIconColor: Color.fromARGB(255, 65, 65, 65),
 
-    // Éléments d'interface
+   
     // Couleur des séparateurs
     dividerColor: Color.fromARGB(141, 54, 54, 54),
     // Couleur de survol
@@ -88,9 +93,14 @@ class AppColors {
     
     // Accent et Actions
     // Couleur d'accentuation principale
-    primaryAccent: Color.fromARGB(255, 238, 234, 230),
+    primaryAccent: Color.fromARGB(255, 100, 100, 100),
     // Couleur d'accentuation secondaire
-    secondaryAccent: Color.fromARGB(255, 209, 221, 226),
+    secondaryAccent: Color.fromARGB(255, 200, 200, 200),
+
+    // Surface background main
+    surface: Color.fromARGB(255, 210, 210, 210),
+    surfaceText: Color(0xFF212121),
+    onSurface: Color.fromARGB(255, 54, 54, 54),
   );
 
   // Thème actif (à définir selon le thème choisi)
@@ -117,6 +127,9 @@ class AppThemeColors {
   final Color dottedBorderColor;
   final Color primaryAccent;
   final Color secondaryAccent;
+  final Color surface;
+  final Color surfaceText;
+  final Color onSurface;
 
   const AppThemeColors({
     required this.headerBackground,
@@ -137,5 +150,8 @@ class AppThemeColors {
     required this.dottedBorderColor,
     required this.primaryAccent,
     required this.secondaryAccent,
+    required this.surface,
+    required this.surfaceText,
+    required this.onSurface,
   });
 }
