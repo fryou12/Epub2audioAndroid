@@ -8,6 +8,8 @@ import 'providers/theme_provider.dart';
 import 'providers/extractor_provider.dart';
 import 'package:provider/provider.dart';
 import 'widgets/dotted_container.dart';
+import 'widgets/chapter_tiles.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -218,203 +220,187 @@ class _MyHomePageState extends State<MyHomePage> {
               right: 8.0,
               bottom: 8.0,
             ),
-            child: Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width - 16,
-                child: const DottedContainer(),
-              ),
-            ),
+            child: DottedContainer(),
           ),
-          SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                kToolbarHeight + MediaQuery.of(context).padding.top + 16,
-                16,
-                16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ElevatedButton.icon(
-                            icon: Icon(
-                              Icons.file_present_outlined,
-                              color: AppColors.current.iconColor,
-                            ),
-                            label: Text(
-                              'Fichier',
-                              style: TextStyle(
-                                color: AppColors.current.primaryText,
-                              ),
-                            ),
-                            onPressed: _pickFile,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.current.buttonBackground,
-                              foregroundColor: AppColors.current.primaryText,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              minimumSize: const Size(100, 40),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (_selectedFilePath != null)
-                            Expanded(
-                              child: Text(
-                                _getFileName(),
-                                style: TextStyle(
-                                  color: AppColors.current.primaryText,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                        ],
+          Padding(
+            padding: EdgeInsets.only(
+              top: kToolbarHeight + MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              right: 16,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(
+                        Icons.file_present_outlined,
+                        color: AppColors.current.iconColor,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ElevatedButton.icon(
-                            icon: Icon(
-                              Icons.folder_outlined,
-                              color: AppColors.current.iconColor,
-                            ),
-                            label: Text(
-                              'Dossier',
-                              style: TextStyle(
-                                color: AppColors.current.primaryText,
-                              ),
-                            ),
-                            onPressed: _pickDirectory,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.current.buttonBackground,
-                              foregroundColor: AppColors.current.primaryText,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              minimumSize: const Size(100, 40),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (_selectedDirectoryPath != null)
-                            Expanded(
-                              child: Text(
-                                _getDirectoryName(),
-                                style: TextStyle(
-                                  color: AppColors.current.primaryText,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.analytics_outlined, color: AppColors.current.iconColor),
-                              label: Text(
-                                'Analyser',
-                                style: TextStyle(color: AppColors.current.primaryText),
-                              ),
-                              onPressed: _selectedFilePath != null ? _analyzeEpub : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.current.buttonBackground,
-                                foregroundColor: AppColors.current.primaryText,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                minimumSize: const Size(100, 40),
-                              ).copyWith(
-                                backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                                  (Set<MaterialState> states) {
-                                    if (states.contains(MaterialState.disabled)) {
-                                      return AppColors.current.buttonBackground.withOpacity(0.75);
-                                    }
-                                    return AppColors.current.buttonBackground;
-                                  },
-                                ),
-                              ),
-                            ),
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.audiotrack_outlined, color: AppColors.current.iconColor),
-                              label: Text(
-                                'Convertir',
-                                style: TextStyle(color: AppColors.current.primaryText),
-                              ),
-                              onPressed: _selectedDirectoryPath != null ? () {
-                                if (false) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text('Settings'),
-                                      content: Text('Settings content goes here'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(),
-                                          child: Text('Close'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                } else {
-                                  _ttsService.speak('Proceeding with action...');
-                                }
-                              } : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.current.buttonBackground,
-                                foregroundColor: AppColors.current.primaryText,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                minimumSize: const Size(100, 40),
-                              ).copyWith(
-                                backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                                  (Set<MaterialState> states) {
-                                    if (states.contains(MaterialState.disabled)) {
-                                      return AppColors.current.buttonBackground.withOpacity(0.75);
-                                    }
-                                    return AppColors.current.buttonBackground;
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
+                      label: Text(
+                        'Fichier',
+                        style: TextStyle(
+                          color: AppColors.current.primaryText,
                         ),
                       ),
+                      onPressed: _pickFile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.current.buttonBackground,
+                        foregroundColor: AppColors.current.primaryText,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (_selectedFilePath != null)
+                      Expanded(
+                        child: Text(
+                          _getFileName(),
+                          style: TextStyle(
+                            color: AppColors.current.primaryText,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(
+                        Icons.folder_outlined,
+                        color: AppColors.current.iconColor,
+                      ),
+                      label: Text(
+                        'Dossier',
+                        style: TextStyle(
+                          color: AppColors.current.primaryText,
+                        ),
+                      ),
+                      onPressed: _pickDirectory,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.current.buttonBackground,
+                        foregroundColor: AppColors.current.primaryText,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (_selectedDirectoryPath != null)
+                      Expanded(
+                        child: Text(
+                          _getDirectoryName(),
+                          style: TextStyle(
+                            color: AppColors.current.primaryText,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(
+                        Icons.analytics_outlined,
+                        color: AppColors.current.iconColor,
+                      ),
+                      label: Text(
+                        'Analyser',
+                        style: TextStyle(
+                          color: AppColors.current.primaryText,
+                        ),
+                      ),
+                      onPressed: _selectedFilePath != null ? _analyzeEpub : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.current.buttonBackground,
+                        foregroundColor: AppColors.current.primaryText,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      icon: Icon(
+                        Icons.audiotrack_outlined,
+                        color: AppColors.current.iconColor,
+                      ),
+                      label: Text(
+                        'Convertir',
+                        style: TextStyle(
+                          color: AppColors.current.primaryText,
+                        ),
+                      ),
+                      onPressed: _selectedDirectoryPath != null ? () {
+                        // TODO: Implement conversion
+                      } : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.current.buttonBackground,
+                        foregroundColor: AppColors.current.primaryText,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Text(
+                            'Chapitres',
+                            style: TextStyle(
+                              color: AppColors.current.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Positioned.fill(
+                        top: 24, 
+                        right: -8,
+                        left: -8,
+                        bottom: 16,
+                        child: ChapterTiles(),
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
