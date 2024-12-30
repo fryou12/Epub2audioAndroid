@@ -17,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   List<String> _engines = [];
   List<String> _languages = [];
   List<String> _voices = [];
-  bool _isVoiceExpanded = false;
+  final bool _isVoiceExpanded = false;
 
   @override
   void initState() {

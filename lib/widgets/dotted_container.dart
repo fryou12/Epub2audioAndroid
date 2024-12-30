@@ -87,7 +87,7 @@ class DottedBorderPainter extends CustomPainter {
     ));
 
     final Path dashedPath = Path();
-    final double dash = 5;
+    const double dash = 5;
 
     for (final PathMetric metric in path.computeMetrics()) {
       double distance = 0.0;

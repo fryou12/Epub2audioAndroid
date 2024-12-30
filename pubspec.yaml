@@ -10,16 +10,18 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.0.0
-  provider: ^6.0.0
+  provider: ^6.0.5
   cupertino_icons: ^1.0.2
-  file_picker: ^6.1.1
-  shared_preferences: ^2.2.2
+  file_picker: ^5.2.10
+  shared_preferences: ^2.2.0
   flutter_tts: ^3.8.5
   http: ^0.13.6
-  path_provider: ^2.1.1
-  path: ^1.8.3
-  epub_parser: ^3.0.1
+  path_provider: ^2.1.1  # For accessing app documents directory
+  path: ^1.8.0
+  epub3: ^0.2.2  # Version corrigée
+  html: ^0.15.4
   logger: ^1.1.0
+  permission_handler: ^11.1.0
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +30,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # Python extractors
+    - assets/epub-extractor-bridge/extractors/semantic.py
+    - assets/epub-extractor-bridge/extractors/dom_based.py
+    - assets/epub-extractor-bridge/extractors/pattern_based.py
+    - assets/epub-extractor-bridge/extractors/toc_based.py
+    - assets/epub-extractor-bridge/extractors/__init__.py
+    - assets/epub-extractor-bridge/extractors/direct_extractor.py

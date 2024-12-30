@@ -1,0 +1,13 @@
+{
+  "name": "epub-extractor-bridge",
+  "version": "1.0.0",
+  "description": "Bridge between Node.js and Python epub extractors",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "python-shell": "^5.0.0",
+    "yargs": "^17.7.2"
+  }
+}

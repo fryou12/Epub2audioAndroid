@@ -7,7 +7,7 @@ class AppColors {
     headerBackground: Color.fromARGB(255, 62, 62, 62),
     // Arrière-plan du drawer
     drawerBackground: Color.fromARGB(255, 49, 49, 49),
-  // Arrière-plan des conteneurs pointillés
+    // Arrière-plan des conteneurs pointillés
     containerBackground: Color.fromARGB(255, 57, 57, 57),
     // Arrière-plan des boutons
     buttonBackground: Color(0xFF424242),
@@ -15,6 +15,8 @@ class AppColors {
     buttonBackgroundDisabled: Color(0xFF616161), 
     // Arrière-plan transparent
     transparentBackground: Color.fromARGB(255, 100, 100, 100),
+    // Arrière-plan général
+    background: Color.fromARGB(255, 49, 49, 49),
 
     // Couleurs du texte et des icônes
     // Texte principal
@@ -50,6 +52,13 @@ class AppColors {
     surface: Color.fromARGB(255, 120, 120, 120),
     surfaceText: Color.fromARGB(255, 206, 206, 206),
     onSurface: Color.fromARGB(255, 179, 179, 179),
+
+    // Couleurs des tuiles de chapitre
+    chapterTileBackground: Color.fromARGB(255, 57, 57, 57),
+    chapterTileBorder: Color.fromARGB(255, 62, 62, 62),
+    chapterTileTitle: Color.fromARGB(255, 206, 206, 206),
+    chapterTileText: Color.fromARGB(179, 117, 117, 117),
+    chapterTileWordCount: Color.fromARGB(188, 148, 147, 147),
   );
 
   // Thème Clair
@@ -66,6 +75,8 @@ class AppColors {
     buttonBackgroundDisabled: Color.fromARGB(255, 191, 191, 191), // Colors.grey[300]
     // Arrière-plan transparent
     transparentBackground: Color.fromARGB(126, 169, 169, 169),
+    // Arrière-plan général
+    background: Color.fromARGB(255, 255, 255, 255),
 
     // Couleurs du texte et des icônes
     // Texte principal
@@ -101,6 +112,13 @@ class AppColors {
     surface: Color.fromARGB(255, 210, 210, 210),
     surfaceText: Color(0xFF212121),
     onSurface: Color.fromARGB(255, 54, 54, 54),
+
+    // Couleurs des tuiles de chapitre
+    chapterTileBackground: Color.fromARGB(255, 255, 255, 255),
+    chapterTileBorder: Color.fromARGB(255, 230, 230, 230),
+    chapterTileTitle: Color(0xFF212121),
+    chapterTileText: Color(0xFF757575),
+    chapterTileWordCount: Color(0xFFAAAAAA),
   );
 
   // Thème actif (à définir selon le thème choisi)
@@ -115,21 +133,32 @@ class AppThemeColors {
   final Color buttonBackground;
   final Color buttonBackgroundDisabled;
   final Color transparentBackground;
+  final Color background;
+
   final Color primaryText;
   final Color secondaryText;
   final Color iconColor;
   final Color disabledIconColor;
+
   final Color dividerColor;
   final Color hoverColor;
   final Color sliderActiveColor;
   final Color sliderInactiveColor;
   final Color overlayColor;
   final Color dottedBorderColor;
+
   final Color primaryAccent;
   final Color secondaryAccent;
+
   final Color surface;
   final Color surfaceText;
   final Color onSurface;
+
+  final Color chapterTileBackground;
+  final Color chapterTileBorder;
+  final Color chapterTileTitle;
+  final Color chapterTileText;
+  final Color chapterTileWordCount;
 
   const AppThemeColors({
     required this.headerBackground,
@@ -138,6 +167,7 @@ class AppThemeColors {
     required this.buttonBackground,
     required this.buttonBackgroundDisabled,
     required this.transparentBackground,
+    required this.background,
     required this.primaryText,
     required this.secondaryText,
     required this.iconColor,
@@ -153,5 +183,10 @@ class AppThemeColors {
     required this.surface,
     required this.surfaceText,
     required this.onSurface,
+    required this.chapterTileBackground,
+    required this.chapterTileBorder,
+    required this.chapterTileTitle,
+    required this.chapterTileText,
+    required this.chapterTileWordCount,
   });
 }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/dotted_container.dart';
+import '../widgets/chapter_list.dart';
 import '../constants/colors.dart';
+import '../services/epub_service.dart';
+import '../models/chapter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +17,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? selectedFilePath;
   String? selectedDirectoryPath;
+  List<Chapter> chapters = [];
+  bool isAnalyzing = false;
+  String? error;
 
   Future<void> _pickFile() async {
     try {
@@ -25,10 +31,14 @@ class _HomeScreenState extends State<HomeScreen> {
       if (result != null) {
         setState(() {
           selectedFilePath = result.files.single.path;
+          chapters = [];
+          error = null;
         });
       }
     } catch (e) {
-      debugPrint('Erreur lors de la sélection du fichier: $e');
+      setState(() {
+        error = 'Erreur lors de la sélection du fichier: $e';
+      });
     }
   }
 
@@ -39,10 +49,41 @@ class _HomeScreenState extends State<HomeScreen> {
       if (result != null) {
         setState(() {
           selectedDirectoryPath = result;
+          error = null;
         });
       }
     } catch (e) {
-      debugPrint('Erreur lors de la sélection du dossier: $e');
+      setState(() {
+        error = 'Erreur lors de la sélection du dossier: $e';
+      });
+    }
+  }
+
+  Future<void> _analyzeEpub() async {
+    if (selectedFilePath == null || selectedDirectoryPath == null) return;
+
+    setState(() {
+      isAnalyzing = true;
+      error = null;
+    });
+
+    try {
+      final extractedChapters = await EpubService.extractChapters(selectedFilePath!);
+      if (extractedChapters.isEmpty) {
+        throw Exception('Aucun chapitre trouvé dans le fichier EPUB');
+      }
+
+      await EpubService.saveChapters(extractedChapters, selectedDirectoryPath!);
+
+      setState(() {
+        chapters = extractedChapters;
+        isAnalyzing = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isAnalyzing = false;
+      });
     }
   }
 
@@ -62,11 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.darkTheme.drawerBackground,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
+        preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.darkTheme.headerBackground,
-            border: Border(
+            border: const Border(
               bottom: BorderSide(
                 color: Colors.white,
                 width: 1,
@@ -79,11 +120,11 @@ class _HomeScreenState extends State<HomeScreen> {
             centerTitle: true,
             leading: Builder(
               builder: (context) => IconButton(
-                icon: Icon(Icons.menu, color: Colors.white),
+                icon: const Icon(Icons.menu, color: Colors.white),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
-            title: Row(
+            title: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.menu_book_outlined, color: Colors.white, size: 24),
@@ -99,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      drawer: AppDrawer(),
+      drawer: const AppDrawer(),
       body: Stack(
         children: [
           Padding(
@@ -186,8 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           ElevatedButton.icon(
                             icon: const Icon(Icons.analytics_outlined, color: Colors.white),
-                            label: const Text('Analyser'),
-                            onPressed: selectedFilePath != null ? () {} : null,
+                            label: Text(isAnalyzing ? 'Analyse...' : 'Analyser'),
+                            onPressed: (selectedFilePath != null && selectedDirectoryPath != null && !isAnalyzing)
+                                ? _analyzeEpub
+                                : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey[800],
                               foregroundColor: Colors.white,
@@ -197,24 +240,54 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.music_note_outlined, color: Colors.white),
-                            label: const Text('Convertir'),
-                            onPressed: selectedFilePath != null && selectedDirectoryPath != null ? () {} : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                          if (chapters.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              icon: const Icon(Icons.music_note_outlined, color: Colors.white),
+                              label: const Text('Convertir'),
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[800],
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],
                   ),
+                  if (error != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[900]!.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red[900]!),
+                      ),
+                      child: Text(
+                        error!,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                  if (chapters.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Chapitres',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ChapterList(chapters: chapters),
+                  ],
                 ],
               ),
             ),

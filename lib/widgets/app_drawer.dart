@@ -95,187 +95,192 @@ class _AppDrawerState extends State<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.current.drawerBackground,
-      child: Column(
-        children: [
-          Container(
-            height: kToolbarHeight + MediaQuery.of(context).padding.top,
-            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-            decoration: BoxDecoration(
-              color: AppColors.current.headerBackground,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.current.dividerColor,
-                  width: 1,
-                ),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'ePub to Audio',
-              style: TextStyle(
-                fontSize: 20,
-                color: AppColors.current.primaryText,
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.home_outlined, color: AppColors.current.iconColor),
-            title: Text(
-              'Accueil',
-              style: TextStyle(color: AppColors.current.primaryText),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          _buildDropdownTile(
-            title: 'Moteur TTS',
-            icon: Icons.engineering,
-            value: _selectedEngine,
-            items: _engines,
-            onChanged: (String? value) {
-              if (value != null && value != _selectedEngine) {
-                setState(() {
-                  _selectedEngine = value;
-                  _selectedLanguage = null;
-                  _selectedVoice = null;
-                  _languages.clear();
-                  _voices.clear();
-                  _updateLanguages();
-                });
-              }
-            },
-          ),
-          _buildDropdownTile(
-            title: 'Langue',
-            icon: Icons.language,
-            value: _selectedLanguage,
-            items: _languages,
-            onChanged: (String? value) {
-              if (value != null && value != _selectedLanguage) {
-                setState(() {
-                  _selectedLanguage = value;
-                  _selectedVoice = null;
-                  _voices.clear();
-                  _updateVoices();
-                });
-              }
-            },
-          ),
-          _buildDropdownTile(
-            title: 'Voix',
-            icon: Icons.record_voice_over_outlined,
-            value: _selectedVoice,
-            items: _voices,
-            onChanged: (String? value) {
-              if (value != null && value != _selectedVoice) {
-                setState(() {
-                  _selectedVoice = value;
-                  _ttsService.setVoice(value);
-                });
-              }
-            },
-          ),
-          ExpansionTile(
-            leading: Icon(Icons.extension, color: AppColors.current.iconColor),
-            title: Text(
-              'Méthode d\'extraction',
-              style: TextStyle(color: AppColors.current.primaryText),
-            ),
+    return ListenableBuilder(
+      listenable: ThemeProvider(),
+      builder: (context, _) {
+        return Drawer(
+          backgroundColor: AppColors.current.drawerBackground,
+          child: Column(
             children: [
-              SingleChildScrollView(
-                child: Consumer<ExtractorProvider>(
-                  builder: (context, extractorProvider, _) {
-                    return Column(
-                      children: extractorProvider.availableExtractors.map((extractor) {
-                        return RadioListTile<String>(
-                          title: Text(
-                            extractor.replaceAll('_', ' ').split(' ').map((word) => 
-                              word[0].toUpperCase() + word.substring(1)
-                            ).join(' '),
-                            style: TextStyle(color: AppColors.current.primaryText),
-                          ),
-                          subtitle: Text(
-                            extractorProvider.extractorDescriptions[extractor] ?? '',
-                            style: TextStyle(
-                              color: AppColors.current.primaryText.withOpacity(0.7),
-                              fontSize: 12,
-                            ),
-                          ),
-                          value: extractor,
-                          groupValue: extractorProvider.selectedExtractor,
-                          onChanged: (String? value) {
-                            if (value != null) {
-                              extractorProvider.setExtractor(value);
-                            }
-                          },
-                          activeColor: AppColors.current.primaryAccent,
-                        );
-                      }).toList(),
-                    );
-                  },
+              Container(
+                height: kToolbarHeight + MediaQuery.of(context).padding.top,
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                decoration: BoxDecoration(
+                  color: AppColors.current.headerBackground,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppColors.current.dividerColor,
+                      width: 0.5,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          ListTile(
-            leading: Icon(Icons.settings_outlined, color: AppColors.current.iconColor),
-            title: Text(
-              'Paramètres',
-              style: TextStyle(color: AppColors.current.primaryText),
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.help_outline, color: AppColors.current.iconColor),
-            title: Text(
-              'Aide',
-              style: TextStyle(color: AppColors.current.primaryText),
-            ),
-            onTap: () {
-              // Action pour l'aide
-            },
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+                alignment: Alignment.center,
                 child: Text(
-                  'Version: 1.0.0',
+                  'ePub to Audio',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: AppColors.current.primaryText,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.home_outlined, color: AppColors.current.iconColor),
+                title: Text(
+                  'Accueil',
                   style: TextStyle(color: AppColors.current.primaryText),
                 ),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+              _buildDropdownTile(
+                title: 'Moteur TTS',
+                icon: Icons.engineering,
+                value: _selectedEngine,
+                items: _engines,
+                onChanged: (String? value) {
+                  if (value != null && value != _selectedEngine) {
+                    setState(() {
+                      _selectedEngine = value;
+                      _selectedLanguage = null;
+                      _selectedVoice = null;
+                      _languages.clear();
+                      _voices.clear();
+                      _updateLanguages();
+                    });
+                  }
+                },
+              ),
+              _buildDropdownTile(
+                title: 'Langue',
+                icon: Icons.language,
+                value: _selectedLanguage,
+                items: _languages,
+                onChanged: (String? value) {
+                  if (value != null && value != _selectedLanguage) {
+                    setState(() {
+                      _selectedLanguage = value;
+                      _selectedVoice = null;
+                      _voices.clear();
+                      _updateVoices();
+                    });
+                  }
+                },
+              ),
+              _buildDropdownTile(
+                title: 'Voix',
+                icon: Icons.record_voice_over_outlined,
+                value: _selectedVoice,
+                items: _voices,
+                onChanged: (String? value) {
+                  if (value != null && value != _selectedVoice) {
+                    setState(() {
+                      _selectedVoice = value;
+                      _ttsService.setVoice(value);
+                    });
+                  }
+                },
+              ),
+              ExpansionTile(
+                leading: Icon(Icons.extension, color: AppColors.current.iconColor),
+                title: Text(
+                  'Méthode d\'extraction',
+                  style: TextStyle(color: AppColors.current.primaryText),
+                ),
+                children: [
+                  SingleChildScrollView(
+                    child: Consumer<ExtractorProvider>(
+                      builder: (context, extractorProvider, _) {
+                        return Column(
+                          children: extractorProvider.availableExtractors.map((extractor) {
+                            return RadioListTile<String>(
+                              title: Text(
+                                extractor.replaceAll('_', ' ').split(' ').map((word) => 
+                                  word[0].toUpperCase() + word.substring(1)
+                                ).join(' '),
+                                style: TextStyle(color: AppColors.current.primaryText),
+                              ),
+                              subtitle: Text(
+                                extractorProvider.extractorDescriptions[extractor] ?? '',
+                                style: TextStyle(
+                                  color: AppColors.current.primaryText.withOpacity(0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              value: extractor,
+                              groupValue: extractorProvider.selectedExtractor,
+                              onChanged: (String? value) {
+                                if (value != null) {
+                                  extractorProvider.setExtractor(value);
+                                }
+                              },
+                              activeColor: AppColors.current.primaryAccent,
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              ListTile(
+                leading: Icon(Icons.settings_outlined, color: AppColors.current.iconColor),
+                title: Text(
+                  'Paramètres',
+                  style: TextStyle(color: AppColors.current.primaryText),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.help_outline, color: AppColors.current.iconColor),
+                title: Text(
+                  'Aide',
+                  style: TextStyle(color: AppColors.current.primaryText),
+                ),
+                onTap: () {
+                  // Action pour l'aide
+                },
               ),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) {
-                    return IconButton(
-                      icon: Icon(
-                        themeProvider.isDarkTheme ? Icons.light_mode : Icons.dark_mode,
-                        color: AppColors.current.iconColor,
-                      ),
-                      onPressed: () {
-                        themeProvider.toggleTheme();
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Version: 1.0.0',
+                      style: TextStyle(color: AppColors.current.primaryText),
+                    ),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, _) {
+                        return IconButton(
+                          icon: Icon(
+                            themeProvider.isDarkTheme ? Icons.light_mode : Icons.dark_mode,
+                            color: AppColors.current.iconColor,
+                          ),
+                          onPressed: () {
+                            themeProvider.toggleTheme();
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
